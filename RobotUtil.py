@@ -61,24 +61,18 @@ def BlockDesc2Points(H, Dim):
 def CheckPointOverlap(pointsA,pointsB,axis):	
 	# TODO: check if sets of points projected on axis are overlapping
 
-	# print("Shape of A:", pointsA.shape)
-	# print("Shape of B:", pointsB.shape)
-	# print("Shape of axis:", axis.shape)
-
-	# print()
-
-	
-
 	status = False
 
 	pointsA = np.asarray(pointsA)
 	pointsB = np.asarray(pointsB)
+	axis = np.asarray(axis)
 
 	# print("Shape of A:", pointsA.shape)
 	# print("Shape of B:", pointsB.shape)
+	# print("Shape of axis:", axis.shape)
 
-	# print("Points A:", pointsA)
-	# print("Points B:", pointsB)
+	# print("Points A:\n", pointsA)
+	# print("Points B:\n", pointsB)
 	# print("Axis:", axis)
 
 	# print(np.linalg.norm(axis))

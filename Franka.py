@@ -129,6 +129,7 @@ class FrankArm:
 			self.Tcoll.append([[1,0,0,0],[0,1,0,0],[0,0,1,0.],[0,0,0,1]])
 			
 			self.Cpoints.append(np.zeros((3,4)))
+			#Steven - Why is the above shape 3x4 ?
 			self.Caxes.append(np.zeros((3,3)))
 
 	def ForwardKin(self,ang):
@@ -137,10 +138,12 @@ class FrankArm:
 		outputs: joint transforms for each joint, Jacobian matrix
 		'''
 
-		# print("Len of q: ",len(self.q))
-		# print("len of q slice: ", len(self.q[0:-1]))
-		# print("len of ang: ", len(ang))
 
+		print("Len of q: ",len(self.q))
+		print("len of q slice: ", len(self.q[0:-1]))
+		print("len of ang: ", len(ang))
+		# assert( len(self.q[0:-1]) == len(ang) )
+		#Steven - Why does this fail in init ?
 		
 		self.q[0:-1]=ang
 		
@@ -357,5 +360,32 @@ class FrankArm:
 		plt.show()
 		return fig, ax
 
+if __name__ == '__main__':
 
+	#Hw2 Part 3.1 Cuboid collision checker
+	ref_rpy  = [0,0,0]
+	ref_xyz  = [0,0,0]
+	ref_dims = [3,1,2]
+	H_ref = rt.rpyxyz2H(ref_rpy,ref_xyz)
+	points_ref, axes_ref = rt.BlockDesc2Points(H_ref, ref_dims)
 
+	test_rpy  = [[0, 0, 0],[  1,    0, 1.5],[0, 0, 0 ], [0, 0, 0],[0.5, 0, 0.4],[-0.2, 0.5, 0  ],[0, 0.785, 0.785], [  0 , 0,  0.2]]
+	test_xyz  = [[0, 1, 0],[1.5, -1.5, 0  ],[0, 0, -1], [3, 0, 0], [-1, 0 , -2],[ 1.8, 0.5, 1.5],[0, -1.2 , 0.4  ], [-0.8, 0, -0.5]]
+	test_dims = [[0.8, 0.8, 0.8],[1, 3, 3],[2, 3, 1], [3, 1, 1], [2, 0.7 , 2],[ 1, 3, 1],[1, 1 , 1], [1, 0.5, 0.5]]
+
+	for i in range(8):
+		# print("\nTest ",i+1, " : xyz=", test_xyz[i], "  rpy=", test_rpy[i], "  dims=", test_dims[i])
+		H_test = rt.rpyxyz2H(test_rpy[i],test_xyz[i])
+		points_test, axes_test = rt.BlockDesc2Points(H_test, test_dims[i])
+		
+		if rt.CheckBoxBoxCollision(points_ref, axes_ref, points_test, axes_test):
+			print("Test ",i+1, " collides with ref cuboid")
+		else:
+			print("Test ",i+1, " DOES NOT collide with ref cuboid")
+
+		# input()
+
+	#Hw2 Part 3.1 Robot bounding boxes
+	fa = FrankArm()
+	ang = np.zeros((7,))
+	fa.PlotCollisionBlockPoints(ang)
