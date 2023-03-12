@@ -45,8 +45,21 @@ def PRMGenerator():
 
 	while len(prmVertices)<1000:
 		# sample random poses
+
+		q = mybot.SampleRobotConfig()
+		if not mybot.DetectCollision(q, pointsObs, axesObs):
+			prmVertices.append(q)
+
+			prmEdges.append([])
+			for j in range(len(prmVertices)-1):
+				if np.linalg.norm(np.array(prmVertices[-1]) - np.array(prmVertices[j])) < 2.:
+					if not mybot.DetectCollisionEdge(prmVertices[-1], prmVertices[j], pointsObs, axesObs):
+						prmEdges[-1].append(j)
+						prmEdges[j].append(len(prmVertices)-1)
+
 		print(len(prmVertices))
 		
+
 
 
 

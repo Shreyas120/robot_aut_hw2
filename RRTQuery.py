@@ -116,10 +116,10 @@ def RRTQuery():
 	global rrtVertices
 	global rrtEdges
 	
-	global mybot
-	global pointsObs
-	global axesObs
-	global thresh
+	# global mybot
+	# global pointsObs
+	# global axesObs
+	# global thresh
 
 	while len(rrtVertices)<3000 and not FoundSolution:
 
@@ -199,7 +199,7 @@ def RRTQuery():
 
 				plan.insert(anchorA+1, candidateB)
 				plan.insert(anchorA+1, candidateA)
-				
+
 		for (i, q) in enumerate(plan):
 			print("Plan step: ", i, "and joint: ", q)
 		plan_length = len(plan)
