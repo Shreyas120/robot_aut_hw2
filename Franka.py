@@ -139,9 +139,9 @@ class FrankArm:
 		'''
 
 
-		print("Len of q: ",len(self.q))
-		print("len of q slice: ", len(self.q[0:-1]))
-		print("len of ang: ", len(ang))
+		# print("Len of q: ",len(self.q))
+		# print("len of q slice: ", len(self.q[0:-1]))
+		# print("len of ang: ", len(ang))
 		# assert( len(self.q[0:-1]) == len(ang) )
 		#Steven - Why does this fail in init ?
 		

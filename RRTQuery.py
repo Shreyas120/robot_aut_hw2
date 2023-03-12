@@ -17,7 +17,9 @@ from mujoco import viewer
 seed(10)
 
 # Open the simulator model from the MJCF file
-xml_filepath = "../franka_emika_panda/panda_with_hand_torque.xml"
+
+os_path = "/home/shreyas/Desktop/Autonomy/hw2"
+xml_filepath = os_path + "/franka_emika_panda/panda_with_hand_torque.xml"
 
 np.random.seed(0)
 deg_to_rad = np.pi/180.
@@ -58,8 +60,8 @@ pointsObs.append(envpoints), axesObs.append(envaxes)
 deg_to_rad = np.pi/180.
 
 # set the initial and goal joint configurations
-qInit = [-np.pi/2, -np.pi/2, np.pi/2, -np.pi/2, 0, np.pi - np.pi/6, 0]
-qGoal = [np.pi/2, -np.pi/2, -np.pi/2, -np.pi/2, 0, np.pi - np.pi/6, 0]
+qInit = np.array([-np.pi/2, -np.pi/2, np.pi/2, -np.pi/2, 0, np.pi - np.pi/6, 0])
+qGoal = np.array([np.pi/2, -np.pi/2, -np.pi/2, -np.pi/2, 0, np.pi - np.pi/6, 0])
 
 # Initialize some data containers for the RRT planner
 rrtVertices=[]
@@ -113,35 +115,91 @@ def RRTQuery():
 	global plan
 	global rrtVertices
 	global rrtEdges
+	
+	global mybot
+	global pointsObs
+	global axesObs
+	global thresh
 
 	while len(rrtVertices)<3000 and not FoundSolution:
 
+		# print(rrtVertices)
+		# print(rrtEdges)
+
 		# Fill in the algorithm here
-
-		print(len(rrtVertices))
+		qRand = np.array(mybot.SampleRobotConfig())
 		
-				
+		#Goal bias
+		if np.random.uniform(0,1) < 0.05:
+			qRand = qGoal
+			print("Goal biasing")
 
+		idNear = FindNearest(rrtVertices,qRand)
+		qNear = np.array(rrtVertices[idNear])
 
+		# RRT Connect
+		while np.linalg.norm(qRand - qNear) > thresh:
+			qConnect = np.array(qNear) + (thresh*(np.array(qRand)-np.array(qNear))/ np.linalg.norm(qRand-qNear))
 
+			if not mybot.DetectCollisionEdge(qConnect, qNear, pointsObs, axesObs):
+				rrtVertices.append(qConnect)
+				rrtEdges.append(idNear)
+				qNear = qConnect
+			else:
+				break
+		
+		qConnect = qRand
 
+		# if np.linalg.norm(qRand - qNear) > thresh:
+		# 	qConnect = np.array(qNear) + (thresh*(np.array(qRand)-np.array(qNear))/ np.linalg.norm(qRand-qNear))
+		# else:
+		# 	qConnect = qRand
+		
+
+		if not mybot.DetectCollisionEdge(qConnect, qNear, pointsObs, axesObs):
+			rrtVertices.append(qConnect)
+			rrtEdges.append(idNear)
+
+		idNear = FindNearest(rrtVertices, qGoal)
+		if np.linalg.norm(qGoal - rrtVertices[idNear]) < 0.025:
+			rrtVertices.append(qGoal)
+			rrtEdges.append(idNear)
+			FoundSolution = True
+			break
+
+		print("Vertices", len(rrtVertices))
+		
+			
 	### if a solution was found
 	if FoundSolution:
 		# Extract path
 		c=-1 #Assume last added vertex is at goal 
 		plan.insert(0, rrtVertices[c])
-
 		while True:
 			c=rrtEdges[c]
+			print(c, len(plan))
 			plan.insert(0, rrtVertices[c])
 			if c==0:
 				break
 
 		# TODO - Path shortening
 		for i in range(150):
-			pass
+			anchorA = np.random.randint(0, len(plan)-2)
+			anchorB = np.random.randint(anchorA + 1, len(plan)-1)
+
+			shiftA, shiftB = np.random.uniform(0,1,(2,))
 	
-		
+			candidateA = (1-shiftA)*plan[anchorA] + shiftA*plan[anchorA+1]
+			candidateB = (1-shiftB)*plan[anchorB] + shiftB*plan[anchorB+1]
+
+			if not mybot.DetectCollisionEdge(candidateA, candidateB, pointsObs, axesObs):
+				while anchorB > anchorA:
+					plan.pop(anchorB)
+					anchorB = anchorB - 1
+
+				plan.insert(anchorA+1, candidateB)
+				plan.insert(anchorA+1, candidateA)
+				
 		for (i, q) in enumerate(plan):
 			print("Plan step: ", i, "and joint: ", q)
 		plan_length = len(plan)
